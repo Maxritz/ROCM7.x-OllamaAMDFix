@@ -31,9 +31,12 @@ Installation
 
 Locate your Ollama ROCm directory:
 %LOCALAPPDATA%\AMD\AI_Bundle\Ollama\lib\ollama\rocm\
-Back up the existing DLL:
-rename hipblaslt.dll to hipblaslt.dll.bak
-Copy the DLL from this zip into the same directory
+Back up the existing DLLs:
+rename the dlls or move them to a separate folder hipblaslt.dll, rocblas.dll ,amdhip64_6.dll, amd_comgr_2.dll 
+Copy and place the dlls from the zip here
+Don't touch the ggml-hip.dll in the root rocm\ directory.
+Make a copy of the rocblas\library first and save it as rocblas\OLDlibrary 
+Then add the files from zip to the rocblas\library and any overwrite file that is present.
 Restart Ollama
 Run ollama serve and confirm you see:
 library=ROCm | compute=gfx1201
