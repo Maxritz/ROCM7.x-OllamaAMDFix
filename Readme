@@ -1,0 +1,72 @@
+Custom compiled hipBLASLt DLL for AMD Radeon RX 9070 XT on Windows.
+The stock DLL shipped with the AMD AI Bundle (Ollama 0.13.5) does not recognise
+gfx1201. It silently falls back to CPU inference with no error or warning.
+This build fixes that.
+
+Hardware Tested
+
+GPU: AMD Radeon RX 9070 XT (gfx1201, RDNA4, 16 GB VRAM)
+OS: Windows 11
+ROCm: 7.x (amdhip64_7.dll)
+Ollama: 0.13.5 (AMD AI Bundle)
+
+
+What This Fixes
+Stock DLL behaviour on gfx1201:
+
+GPU not recognised
+Silent fallback to CPU
+All model layers loaded into system RAM
+GPU completely idle during inference
+
+With this DLL:
+
+gfx1201 detected natively (no HSA_OVERRIDE needed)
+All 33 layers offloaded to GPU on Llama 3 8B Q4_0
+Flash Attention enabled automatically
+138 t/s eval rate on Llama 3 8B Q4_0
+
+
+Installation
+
+Locate your Ollama ROCm directory:
+%LOCALAPPDATA%\AMD\AI_Bundle\Ollama\lib\ollama\rocm\
+Back up the existing DLL:
+rename hipblaslt.dll to hipblaslt.dll.bak
+Copy the DLL from this zip into the same directory
+Restart Ollama
+Run ollama serve and confirm you see:
+library=ROCm | compute=gfx1201
+in the startup log
+
+
+Verification
+Run a quick test:
+powershellollama run llama3 "Calculate 2^20" --verbose
+You should see eval rate around 135-140 t/s with all 33 layers on GPU.
+If you still see GPULayers: [] or device=CPU in the logs, the DLL is
+not in the right directory.
+
+Notes
+
+No HSA_OVERRIDE_GFX_VERSION environment variable required
+First inference after a cold start will be slower due to HIP JIT kernel
+compilation - this is normal behaviour, not a bug. Subsequent runs are full speed.
+Vulkan path also works without this DLL - but ROCm gives marginally better
+prompt eval throughput
+
+
+Build Info
+Compiled targeting gfx1201 (RDNA4) on ROCm 7.x.
+[Add your build flags / cmake options here if you want to share them]
+
+Tested With
+
+Meta Llama 3 8B Instruct, Q4_0 GGUF
+Ollama 0.13.5
+
+Other models should work - not tested yet.
+
+Issues
+If it doesn't work, open an issue with your ollama serve log output.
+The key lines to look for are the inference compute and load_tensors sections.
